@@ -1,3 +1,7 @@
+⚠️ **This is an upstream fork with the intent to just drop the additional css libraries form the required dependancy list**
+
+* * *
+
 # typescript-plugin-css-modules
 
 [![npm](https://img.shields.io/npm/v/typescript-plugin-css-modules)](https://www.npmjs.com/package/typescript-plugin-css-modules)
