@@ -1,5 +1,5 @@
 declare module 'postcss-filter-plugins' {
-  import { Plugin } from 'postcss';
+  import type { Plugin } from 'postcss';
   interface Options {
     direction?: 'backward' | 'both' | 'forward';
     exclude?: string[];

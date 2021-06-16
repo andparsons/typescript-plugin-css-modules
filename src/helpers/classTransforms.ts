@@ -1,5 +1,5 @@
+import type { ClassnameTransformOptions } from '../options';
 import camelCase from 'lodash.camelcase';
-import { ClassnameTransformOptions } from '../options';
 
 // The below is based on the CSS Modules implementation found here:
 // https://github.com/webpack-contrib/css-loader/blob/master/lib/compile-exports.js

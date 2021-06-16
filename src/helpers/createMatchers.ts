@@ -1,11 +1,7 @@
-import { Options } from '../options';
-import {
-  createIsCSS,
-  createIsRelativeCSS,
-  isCSSFn,
-  isRelativeCSSFn,
-} from './cssExtensions';
-import { Logger } from './logger';
+import type { Options } from '../options';
+import type { isCSSFn, isRelativeCSSFn } from './cssExtensions';
+import type { Logger } from './logger';
+import { createIsCSS, createIsRelativeCSS } from './cssExtensions';
 
 interface Matchers {
   isCSS: isCSSFn;

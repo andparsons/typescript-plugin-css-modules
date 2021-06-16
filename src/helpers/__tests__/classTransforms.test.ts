@@ -1,5 +1,5 @@
+import type { ClassnameTransformOptions } from '../../options';
 import { transformClasses } from '../classTransforms';
-import { ClassnameTransformOptions } from '../../options';
 
 describe('utils / classTransforms', () => {
   const classNames = [

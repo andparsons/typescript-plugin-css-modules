@@ -1,15 +1,17 @@
-import fs from 'fs';
+import type ts from 'typescript/lib/tsserverlibrary';
+import type { SourceFile, server } from 'typescript/lib/tsserverlibrary';
+import type { AcceptedPlugin } from 'postcss';
+import type { Options } from './options';
+import type { isCSSFn } from './helpers/cssExtensions';
+import { existsSync } from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
-import postcss, { AcceptedPlugin } from 'postcss';
+import postcss from 'postcss';
 import postcssIcssSelectors from 'postcss-icss-selectors';
 import postcssIcssKeyframes from 'postcss-icss-keyframes';
 import postcssrc from 'postcss-load-config';
 import filter from 'postcss-filter-plugins';
-import tsModule from 'typescript/lib/tsserverlibrary';
-import { Options } from './options';
 import { createMatchers } from './helpers/createMatchers';
-import { isCSSFn } from './helpers/cssExtensions';
 import { getDtsSnapshot } from './helpers/getDtsSnapshot';
 import { createLogger } from './helpers/logger';
 
@@ -22,10 +24,10 @@ const getPostCssConfigPlugins = (directory: string) => {
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-function init({ typescript: ts }: { typescript: typeof tsModule }) {
+function init({ typescript: typeSystem }: { typescript: typeof ts }) {
   let _isCSS: isCSSFn;
 
-  function create(info: ts.server.PluginCreateInfo) {
+  function create(info: server.PluginCreateInfo) {
     const logger = createLogger(info);
     const directory = info.project.getCurrentDirectory();
     const compilerOptions = info.project.getCompilerOptions();
@@ -37,7 +39,7 @@ function init({ typescript: ts }: { typescript: typeof tsModule }) {
     const options: Options = info.config.options || {};
     logger.log(`options: ${JSON.stringify(options)}`);
 
-    // Load environment variables like SASS_PATH.
+    // Load environment variables
     // TODO: Add tests for this option.
     const dotenvOptions = options.dotenvOptions || {};
     if (dotenvOptions) {
@@ -47,17 +49,6 @@ function init({ typescript: ts }: { typescript: typeof tsModule }) {
       );
     }
     dotenv.config(dotenvOptions);
-
-    // Normalise SASS_PATH array to absolute paths.
-    if (process.env.SASS_PATH) {
-      process.env.SASS_PATH = process.env.SASS_PATH.split(path.delimiter)
-        .map((sassPath) =>
-          path.isAbsolute(sassPath)
-            ? sassPath
-            : path.resolve(directory, sassPath),
-        )
-        .join(path.delimiter);
-    }
 
     // Add postCSS config if enabled.
     const postcssOptions =
@@ -77,12 +68,12 @@ function init({ typescript: ts }: { typescript: typeof tsModule }) {
 
     // If a custom renderer is provided, resolve the path.
     if (options.customRenderer) {
-      if (fs.existsSync(path.resolve(directory, options.customRenderer))) {
+      if (existsSync(path.resolve(directory, options.customRenderer))) {
         options.customRenderer = path.resolve(
           directory,
           options.customRenderer,
         );
-      } else if (fs.existsSync(require.resolve(options.customRenderer))) {
+      } else if (existsSync(require.resolve(options.customRenderer))) {
         options.customRenderer = require.resolve(options.customRenderer);
       } else {
         logger.error(
@@ -110,15 +101,16 @@ function init({ typescript: ts }: { typescript: typeof tsModule }) {
     _isCSS = isCSS;
 
     // Creates new virtual source files for the CSS modules.
-    const _createLanguageServiceSourceFile = ts.createLanguageServiceSourceFile;
-    ts.createLanguageServiceSourceFile = (
+    const _createLanguageServiceSourceFile =
+      typeSystem.createLanguageServiceSourceFile;
+    typeSystem.createLanguageServiceSourceFile = (
       fileName,
       scriptSnapshot,
       ...rest
-    ): ts.SourceFile => {
+    ): SourceFile => {
       if (isCSS(fileName)) {
         scriptSnapshot = getDtsSnapshot(
-          ts,
+          typeSystem,
           processor,
           fileName,
           scriptSnapshot,
@@ -139,15 +131,16 @@ function init({ typescript: ts }: { typescript: typeof tsModule }) {
     };
 
     // Updates virtual source files as files update.
-    const _updateLanguageServiceSourceFile = ts.updateLanguageServiceSourceFile;
-    ts.updateLanguageServiceSourceFile = (
+    const _updateLanguageServiceSourceFile =
+      typeSystem.updateLanguageServiceSourceFile;
+    typeSystem.updateLanguageServiceSourceFile = (
       sourceFile,
       scriptSnapshot,
       ...rest
-    ): ts.SourceFile => {
+    ): SourceFile => {
       if (isCSS(sourceFile.fileName)) {
         scriptSnapshot = getDtsSnapshot(
-          ts,
+          typeSystem,
           processor,
           sourceFile.fileName,
           scriptSnapshot,
@@ -188,7 +181,7 @@ function init({ typescript: ts }: { typescript: typeof tsModule }) {
           try {
             if (isRelativeCSS(moduleName)) {
               return {
-                extension: tsModule.Extension.Dts,
+                extension: '.d.ts',
                 isExternalLibraryImport: false,
                 resolvedFileName: path.resolve(
                   path.dirname(containingFile),
@@ -232,12 +225,12 @@ function init({ typescript: ts }: { typescript: typeof tsModule }) {
 
               // Find the imported CSS module, if it exists.
               const cssModulePath = normalizedLocations.find((location) =>
-                fs.existsSync(location),
+                existsSync(location),
               );
 
               if (cssModulePath) {
                 return {
-                  extension: tsModule.Extension.Dts,
+                  extension: '.d.ts',
                   isExternalLibraryImport: false,
                   resolvedFileName: path.resolve(cssModulePath),
                 };
@@ -255,7 +248,7 @@ function init({ typescript: ts }: { typescript: typeof tsModule }) {
     return info.languageService;
   }
 
-  function getExternalFiles(project: tsModule.server.ConfiguredProject) {
+  function getExternalFiles(project: server.ConfiguredProject) {
     return project.getFileNames().filter(_isCSS);
   }
 

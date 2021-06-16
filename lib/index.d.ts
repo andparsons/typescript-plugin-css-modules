@@ -1,8 +1,9 @@
-import tsModule from 'typescript/lib/tsserverlibrary';
-declare function init({ typescript: ts }: {
-    typescript: typeof tsModule;
+import type ts from 'typescript/lib/tsserverlibrary';
+import type { server } from 'typescript/lib/tsserverlibrary';
+declare function init({ typescript: typeSystem }: {
+    typescript: typeof ts;
 }): {
-    create: (info: ts.server.PluginCreateInfo) => tsModule.LanguageService;
-    getExternalFiles: (project: tsModule.server.ConfiguredProject) => tsModule.server.NormalizedPath[];
+    create: (info: server.PluginCreateInfo) => ts.LanguageService;
+    getExternalFiles: (project: server.ConfiguredProject) => server.NormalizedPath[];
 };
 export = init;

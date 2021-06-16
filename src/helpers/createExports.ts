@@ -1,8 +1,8 @@
-import { CSSExports } from 'icss-utils';
-import reserved from 'reserved-words';
-import { CustomTemplate, Options } from '../options';
+import type { CSSExports } from 'icss-utils';
+import type { CustomTemplate, Options } from '../options';
+import type { Logger } from './logger';
 import { transformClasses } from './classTransforms';
-import { Logger } from './logger';
+import reserved from 'reserved-words';
 
 const NOT_CAMELCASE_REGEXP = /[\-_]/;
 

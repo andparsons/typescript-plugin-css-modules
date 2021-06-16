@@ -1,7 +1,7 @@
 // TODO: Remove this when the related issue is resolved.
 // https://github.com/css-modules/postcss-icss-keyframes/issues/3
 const warn = global.console.warn;
-global.console.warn = (...args: unknown[]) => {
+global.console.warn = (...args: unknown[]): void => {
   const isPostCSSDeprecationWarning =
     typeof args[0] === 'string' &&
     args[0].includes('postcss.plugin was deprecated');

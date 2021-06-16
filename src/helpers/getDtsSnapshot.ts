@@ -1,19 +1,23 @@
-import tsModule from 'typescript/lib/tsserverlibrary';
-import { Options } from '../options';
+import type ts from 'typescript/lib/tsserverlibrary';
+import type {
+  CompilerOptions,
+  IScriptSnapshot,
+} from 'typescript/lib/tsserverlibrary';
+import type { Options } from '../options';
+import type { Logger } from './logger';
+import type Processor from 'postcss/lib/processor';
 import { getClasses } from './getClasses';
 import { createExports } from './createExports';
-import { Logger } from './logger';
-import Processor from 'postcss/lib/processor';
 
 export const getDtsSnapshot = (
-  ts: typeof tsModule,
+  typeSystem: typeof ts,
   processor: Processor,
   fileName: string,
-  scriptSnapshot: ts.IScriptSnapshot,
+  scriptSnapshot: IScriptSnapshot,
   options: Options,
   logger: Logger,
-  compilerOptions: tsModule.CompilerOptions,
-): tsModule.IScriptSnapshot => {
+  compilerOptions: CompilerOptions,
+): IScriptSnapshot => {
   const css = scriptSnapshot.getText(0, scriptSnapshot.getLength());
 
   /*
@@ -34,5 +38,5 @@ export const getDtsSnapshot = (
     compilerOptions,
   });
   const dts = createExports({ classes, fileName, logger, options });
-  return ts.ScriptSnapshot.fromString(dts);
+  return typeSystem.ScriptSnapshot.fromString(dts);
 };
